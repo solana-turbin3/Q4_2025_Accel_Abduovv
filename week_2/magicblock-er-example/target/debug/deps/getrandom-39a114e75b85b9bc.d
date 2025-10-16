@@ -1,0 +1,11 @@
+/home/abduo/Q4_2025_Accel_Abduovv/week_2/magicblock-er-example/target/debug/deps/getrandom-39a114e75b85b9bc.d: /home/abduo/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/getrandom-0.1.16/src/lib.rs /home/abduo/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/getrandom-0.1.16/src/error.rs /home/abduo/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/getrandom-0.1.16/src/util.rs /home/abduo/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/getrandom-0.1.16/src/error_impls.rs /home/abduo/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/getrandom-0.1.16/src/util_libc.rs /home/abduo/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/getrandom-0.1.16/src/use_file.rs /home/abduo/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/getrandom-0.1.16/src/linux_android.rs
+
+/home/abduo/Q4_2025_Accel_Abduovv/week_2/magicblock-er-example/target/debug/deps/libgetrandom-39a114e75b85b9bc.rmeta: /home/abduo/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/getrandom-0.1.16/src/lib.rs /home/abduo/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/getrandom-0.1.16/src/error.rs /home/abduo/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/getrandom-0.1.16/src/util.rs /home/abduo/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/getrandom-0.1.16/src/error_impls.rs /home/abduo/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/getrandom-0.1.16/src/util_libc.rs /home/abduo/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/getrandom-0.1.16/src/use_file.rs /home/abduo/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/getrandom-0.1.16/src/linux_android.rs
+
+/home/abduo/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/getrandom-0.1.16/src/lib.rs:
+/home/abduo/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/getrandom-0.1.16/src/error.rs:
+/home/abduo/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/getrandom-0.1.16/src/util.rs:
+/home/abduo/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/getrandom-0.1.16/src/error_impls.rs:
+/home/abduo/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/getrandom-0.1.16/src/util_libc.rs:
+/home/abduo/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/getrandom-0.1.16/src/use_file.rs:
+/home/abduo/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/getrandom-0.1.16/src/linux_android.rs:

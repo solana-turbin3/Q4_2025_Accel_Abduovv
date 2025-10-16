@@ -1,0 +1,14 @@
+/home/abduo/Q4_2025_Accel_Abduovv/week_2/magicblock-er-example/target/release/deps/libserde-60c3154c9641d87c.rmeta: /home/abduo/.cargo/registry/src/index.crates.io-6f17d22bba15001f/serde-1.0.227/src/lib.rs /home/abduo/.cargo/registry/src/index.crates.io-6f17d22bba15001f/serde-1.0.227/src/integer128.rs /home/abduo/.cargo/registry/src/index.crates.io-6f17d22bba15001f/serde-1.0.227/src/private/mod.rs /home/abduo/.cargo/registry/src/index.crates.io-6f17d22bba15001f/serde-1.0.227/src/private/de.rs /home/abduo/.cargo/registry/src/index.crates.io-6f17d22bba15001f/serde-1.0.227/src/private/ser.rs /home/abduo/Q4_2025_Accel_Abduovv/week_2/magicblock-er-example/target/release/build/serde-8db5537d56c09abb/out/private.rs
+
+/home/abduo/Q4_2025_Accel_Abduovv/week_2/magicblock-er-example/target/release/deps/libserde-60c3154c9641d87c.rlib: /home/abduo/.cargo/registry/src/index.crates.io-6f17d22bba15001f/serde-1.0.227/src/lib.rs /home/abduo/.cargo/registry/src/index.crates.io-6f17d22bba15001f/serde-1.0.227/src/integer128.rs /home/abduo/.cargo/registry/src/index.crates.io-6f17d22bba15001f/serde-1.0.227/src/private/mod.rs /home/abduo/.cargo/registry/src/index.crates.io-6f17d22bba15001f/serde-1.0.227/src/private/de.rs /home/abduo/.cargo/registry/src/index.crates.io-6f17d22bba15001f/serde-1.0.227/src/private/ser.rs /home/abduo/Q4_2025_Accel_Abduovv/week_2/magicblock-er-example/target/release/build/serde-8db5537d56c09abb/out/private.rs
+
+/home/abduo/Q4_2025_Accel_Abduovv/week_2/magicblock-er-example/target/release/deps/serde-60c3154c9641d87c.d: /home/abduo/.cargo/registry/src/index.crates.io-6f17d22bba15001f/serde-1.0.227/src/lib.rs /home/abduo/.cargo/registry/src/index.crates.io-6f17d22bba15001f/serde-1.0.227/src/integer128.rs /home/abduo/.cargo/registry/src/index.crates.io-6f17d22bba15001f/serde-1.0.227/src/private/mod.rs /home/abduo/.cargo/registry/src/index.crates.io-6f17d22bba15001f/serde-1.0.227/src/private/de.rs /home/abduo/.cargo/registry/src/index.crates.io-6f17d22bba15001f/serde-1.0.227/src/private/ser.rs /home/abduo/Q4_2025_Accel_Abduovv/week_2/magicblock-er-example/target/release/build/serde-8db5537d56c09abb/out/private.rs
+
+/home/abduo/.cargo/registry/src/index.crates.io-6f17d22bba15001f/serde-1.0.227/src/lib.rs:
+/home/abduo/.cargo/registry/src/index.crates.io-6f17d22bba15001f/serde-1.0.227/src/integer128.rs:
+/home/abduo/.cargo/registry/src/index.crates.io-6f17d22bba15001f/serde-1.0.227/src/private/mod.rs:
+/home/abduo/.cargo/registry/src/index.crates.io-6f17d22bba15001f/serde-1.0.227/src/private/de.rs:
+/home/abduo/.cargo/registry/src/index.crates.io-6f17d22bba15001f/serde-1.0.227/src/private/ser.rs:
+/home/abduo/Q4_2025_Accel_Abduovv/week_2/magicblock-er-example/target/release/build/serde-8db5537d56c09abb/out/private.rs:
+
+# env-dep:OUT_DIR=/home/abduo/Q4_2025_Accel_Abduovv/week_2/magicblock-er-example/target/release/build/serde-8db5537d56c09abb/out

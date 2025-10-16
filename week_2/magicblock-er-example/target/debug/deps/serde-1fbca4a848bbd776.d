@@ -1,0 +1,12 @@
+/home/abduo/Q4_2025_Accel_Abduovv/week_2/magicblock-er-example/target/debug/deps/serde-1fbca4a848bbd776.d: /home/abduo/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.227/src/lib.rs /home/abduo/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.227/src/integer128.rs /home/abduo/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.227/src/private/mod.rs /home/abduo/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.227/src/private/de.rs /home/abduo/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.227/src/private/ser.rs /home/abduo/Q4_2025_Accel_Abduovv/week_2/magicblock-er-example/target/debug/build/serde-8c2ecf1eda3c37da/out/private.rs
+
+/home/abduo/Q4_2025_Accel_Abduovv/week_2/magicblock-er-example/target/debug/deps/libserde-1fbca4a848bbd776.rmeta: /home/abduo/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.227/src/lib.rs /home/abduo/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.227/src/integer128.rs /home/abduo/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.227/src/private/mod.rs /home/abduo/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.227/src/private/de.rs /home/abduo/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.227/src/private/ser.rs /home/abduo/Q4_2025_Accel_Abduovv/week_2/magicblock-er-example/target/debug/build/serde-8c2ecf1eda3c37da/out/private.rs
+
+/home/abduo/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.227/src/lib.rs:
+/home/abduo/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.227/src/integer128.rs:
+/home/abduo/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.227/src/private/mod.rs:
+/home/abduo/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.227/src/private/de.rs:
+/home/abduo/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.227/src/private/ser.rs:
+/home/abduo/Q4_2025_Accel_Abduovv/week_2/magicblock-er-example/target/debug/build/serde-8c2ecf1eda3c37da/out/private.rs:
+
+# env-dep:OUT_DIR=/home/abduo/Q4_2025_Accel_Abduovv/week_2/magicblock-er-example/target/debug/build/serde-8c2ecf1eda3c37da/out
