@@ -38,7 +38,6 @@ pub mod mind_dao {
         title: String,
         description: String,
     ) -> Result<()> {
-        // 1) initialize draft proposal (placeholder)
         ctx.accounts.proposal_account.set_inner(ProposalAccount {
             creator: ctx.accounts.creator.key(),
             id,
@@ -48,7 +47,7 @@ pub mod mind_dao {
             clarity_score: 0,
             votes_yes: 0,
             votes_no: 0,
-            status: Status::Pending,
+            status: ProposalState::Pending,
             bump: ctx.bumps.proposal_account,
         });
 
@@ -75,7 +74,6 @@ Description: {}
             title, description
         );
 
-        // 3) Prepare CPI to oracle
         let cpi_program = ctx.accounts.oracle_program.to_account_info();
         let cpi_accounts = solana_gpt_oracle::cpi::accounts::InteractWithLlm {
             payer: ctx.accounts.creator.to_account_info(),
@@ -85,15 +83,16 @@ Description: {}
         };
         let cpi_ctx = CpiContext::new(cpi_program, cpi_accounts);
 
-        // 4) Use proposal-specific callback discriminator
         let disc: [u8; 8] = CALLBACK_PROPOSAL_DISCRIM.try_into().expect("8 bytes");
         solana_gpt_oracle::cpi::interact_with_llm(cpi_ctx, text, crate::ID, disc, None)?;
         Ok(())
     }
 
+
     /// Vote: create vote account and send reason to AI for scoring
     pub fn vote_on_proposal(ctx: Context<VoteOnProposal>, vote_choice: bool, reason: String) -> Result<()> {
-        // 1) initialize vote account (store reason; score pending)
+        require!(ctx.accounts.proposal_account.status == ProposalState::Accepted, CustomError::ProposalNotAccepted);
+
         ctx.accounts.vote.set_inner(VoteAccount {
             voter: ctx.accounts.voter.key(),
             proposal: ctx.accounts.proposal_account.key(),
@@ -104,7 +103,7 @@ Description: {}
             bump: ctx.bumps.vote,
         });
 
-        // 2) Build vote-evaluation prompt — more focused and constrained
+        // 2) Build vote-evaluation prompt 
         let text = format!(
             r#"
 You are an AI evaluating the quality of a voter's reasoning in a DAO governance vote.
@@ -130,7 +129,6 @@ Proposal Description: {}
             ctx.accounts.proposal_account.description
         );
 
-        // 3) Prepare CPI
         let cpi_program = ctx.accounts.oracle_program.to_account_info();
         let cpi_accounts = solana_gpt_oracle::cpi::accounts::InteractWithLlm {
             payer: ctx.accounts.voter.to_account_info(),
@@ -140,7 +138,6 @@ Proposal Description: {}
         };
         let cpi_ctx = CpiContext::new(cpi_program, cpi_accounts);
 
-        // 4) Use vote-specific callback discriminator
         let disc: [u8; 8] = CALLBACK_VOTE_DISCRIM.try_into().expect("8 bytes");
         solana_gpt_oracle::cpi::interact_with_llm(cpi_ctx, text, crate::ID, disc, None)?;
         Ok(())
@@ -149,7 +146,7 @@ Proposal Description: {}
     // ============================
     // Callbacks
     // ============================
-    /// Callback for proposal analysis: update proposal if AI approves
+    /// Callback for proposal analysis: update proposal status
     pub fn callback_for_proposal(ctx: Context<CallbackForProposal>, response: String) -> Result<()> {
         // ensure the oracle program signed this callback
         require!(
@@ -170,12 +167,17 @@ Proposal Description: {}
         // if AI rejects
         if applicability < 5 {
             msg!("AI rejected proposal (score {})", applicability);
-            return Err(error!(CustomError::AiRejectedProposal));
+            prop.status = ProposalState::Rejected;
+            prop.ai_summary = summary;
+            prop.clarity_score = applicability as u8;
+            return Ok(());
         }
 
         // update proposal
+        prop.status = ProposalState::Accepted;
         prop.ai_summary = summary;
         prop.clarity_score = applicability as u8;
+        
 
         msg!("Proposal accepted: score {}", prop.clarity_score);
         Ok(())
@@ -213,7 +215,7 @@ Proposal Description: {}
 }
 
 // =====================================
-// Accounts - Initialization & PDAs
+// Accounts
 // =====================================
 
 #[derive(Accounts)]
@@ -345,7 +347,7 @@ pub struct ProposalAccount {
     pub clarity_score: u8,
     pub votes_yes: u64,
     pub votes_no: u64,
-    pub status: Status,
+    pub status: ProposalState,
     pub bump: u8,
 }
 
@@ -363,8 +365,8 @@ pub struct VoteAccount {
     pub bump: u8,
 }
 
-#[derive(AnchorSerialize, AnchorDeserialize, Clone, InitSpace)]
-pub enum Status {
+#[derive(AnchorSerialize, AnchorDeserialize, Clone, InitSpace, PartialEq, Eq)]
+pub enum ProposalState {
     Pending,
     Accepted,
     Rejected,
@@ -373,7 +375,7 @@ pub enum Status {
 
 
 // =====================================
-// Discriminators and constants
+// Discriminators
 // =====================================
 
 // We use two different discriminator byte strings for proposals and votes.
@@ -401,4 +403,6 @@ pub enum CustomError {
     UnauthorizedCallback,
     #[msg("Proposal rejected by AI (low clarity score)")]
     AiRejectedProposal,
+    #[msg("Proposal not Accepted")]
+    ProposalNotAccepted,
 }
