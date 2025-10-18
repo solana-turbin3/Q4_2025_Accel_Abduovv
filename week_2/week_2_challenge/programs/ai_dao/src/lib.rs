@@ -8,7 +8,7 @@ use serde_json::Value;
 declare_id!("2csGAx9iytPe4EzgecgHB6tuDMAkCwU2GnmRFjarhnxr");
 
 #[program]
-pub mod simple_agent {
+pub mod mind_dao {
     use super::*;
 
     const AGENT_DESC: &str = "You are a governance AI for MindDAO.
