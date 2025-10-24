@@ -5,7 +5,6 @@ use crate::state::Escrow;
 
 pub fn process_cancel_instruction(
     accounts: &[AccountInfo],
-    _data: &[u8],
 ) -> ProgramResult {
 
     msg!("Processing Cancel instruction");
@@ -50,7 +49,7 @@ pub fn process_cancel_instruction(
 
     let escrow_ata_state = pinocchio_token::state::TokenAccount::from_account_info(&escrow_ata)?;
 
-    if escrow_state.amount_to_give() != escrow_ata_state.amount() {
+    if escrow_state.amount_to_give() > escrow_ata_state.amount() {
         return Err(pinocchio::program_error::ProgramError::InvalidAccountData);
     }
 

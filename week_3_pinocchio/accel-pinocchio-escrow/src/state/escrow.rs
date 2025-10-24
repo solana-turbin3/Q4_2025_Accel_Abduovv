@@ -9,7 +9,7 @@ pub struct Escrow {
     mint_b: [u8; 32],
     amount_to_receive: [u8; 8],
     pub amount_to_give: [u8; 8],
-    pub bump: [u8; 1],
+    pub bump: u8,
 }
 
 impl Escrow {
@@ -76,6 +76,6 @@ impl Escrow {
     }
 
     pub fn set_bump(&mut self, bump: u8) {
-        self.bump = bump.to_le_bytes();
+        self.bump = bump;
     }
 }

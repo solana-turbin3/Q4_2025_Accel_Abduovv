@@ -13,6 +13,7 @@ pinocchio-token = "0.4.0"
 pinocchio-pubkey = { git = "https://github.com/anza-xyz/pinocchio.git" }
 pinocchio-log = "0.5.1"
 pinocchio-associated-token-account = "0.2.0"
+solana-pubkey = "2.2.1"
 
 [dev-dependencies]
 litesvm = "0.6.1"

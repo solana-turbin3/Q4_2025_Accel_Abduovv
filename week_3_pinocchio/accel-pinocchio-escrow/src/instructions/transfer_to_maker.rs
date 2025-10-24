@@ -40,14 +40,7 @@ pub fn transfer_to_maker(accounts: &[AccountInfo]) -> ProgramResult {
         return Err(pinocchio::program_error::ProgramError::InsufficientFunds);
     }
 
-    pinocchio_token::instructions::Transfer {
-        from: taker_ata_b,
-        to: maker_ata_b,
-        authority: taker,
-        amount: escrow_account_state.amount_to_receive(),
-    }.invoke()?;
 
-    escrow_account_state.set_amount_to_receive(0);
 
     Ok(())
 }

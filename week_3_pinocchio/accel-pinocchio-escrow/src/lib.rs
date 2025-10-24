@@ -2,9 +2,9 @@ use pinocchio::{account_info::AccountInfo, entrypoint, pubkey::Pubkey, ProgramRe
 
 use crate::instructions::EscrowInstrctions;
 
-mod tests;
-mod state;
 mod instructions;
+mod state;
+mod tests;
 
 entrypoint!(process_instruction);
 
@@ -15,23 +15,16 @@ pub fn process_instruction(
     accounts: &[AccountInfo],
     instruction_data: &[u8],
 ) -> ProgramResult {
-
     assert_eq!(program_id, &ID);
 
-    let (discriminator, data) = instruction_data.split_first()
+    let (discriminator, data) = instruction_data
+        .split_first()
         .ok_or(pinocchio::program_error::ProgramError::InvalidInstructionData)?;
 
     match EscrowInstrctions::try_from(discriminator)? {
-        EscrowInstrctions::Make => {
-            instructions::process_make_instruction(accounts, data)?;
-            // instructions::transfer_to_escrow(accounts)?
-        },
-        EscrowInstrctions::Take => {
-            instructions::process_take_instruction(accounts)?;
-            instructions::transfer_to_taker(accounts)?;
-            instructions::transfer_to_maker(accounts)?;
-        },
-        EscrowInstrctions::Cancel => instructions::process_cancel_instruction(accounts, data)?,
+        EscrowInstrctions::Make => instructions::process_make_instruction(accounts, data)?,
+        EscrowInstrctions::Take => instructions::process_take_instruction(accounts)?,
+        EscrowInstrctions::Cancel => instructions::process_cancel_instruction(accounts)?,
     }
     Ok(())
 }
