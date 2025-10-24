@@ -1,3 +1,5 @@
 test-ledger/
 node_modules/
 node_modules/
+target/
+test-ledger-magicblock/
