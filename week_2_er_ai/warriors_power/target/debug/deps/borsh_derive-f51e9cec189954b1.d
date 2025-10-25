@@ -1,5 +1,0 @@
-/home/abduo/Q4_2025_Accel_Abduovv/week_2_er_ai/warriors_power/target/debug/deps/borsh_derive-f51e9cec189954b1.d: /home/abduo/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/borsh-derive-0.10.4/src/lib.rs
-
-/home/abduo/Q4_2025_Accel_Abduovv/week_2_er_ai/warriors_power/target/debug/deps/libborsh_derive-f51e9cec189954b1.so: /home/abduo/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/borsh-derive-0.10.4/src/lib.rs
-
-/home/abduo/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/borsh-derive-0.10.4/src/lib.rs:
