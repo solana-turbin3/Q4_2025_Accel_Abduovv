@@ -5,6 +5,7 @@ use crate::instructions::ProgramInstruction;
 pub mod errors;
 pub mod instructions;
 pub mod states;
+pub mod tests;
 
 entrypoint!(process_instruction);
 

@@ -2,8 +2,7 @@ use bytemuck::{Pod, Zeroable};
 use pinocchio::{
     account_info::AccountInfo,
     instruction::{Seed, Signer},
-    msg,
-    pubkey::{self, log},
+    pubkey::{self},
     sysvars::{rent::Rent, Sysvar},
     ProgramResult,
 };
@@ -35,9 +34,17 @@ impl CreateData {
 }
 
 pub fn process_create(accounts: &[AccountInfo], data: &[u8]) -> ProgramResult {
-    let [creator, mint_to_raise, fundraiser_account, vault, system_program, token_program, _associated_token_program, _rent_sysvar @ ..] =
-        accounts
-    else {
+
+    let [
+        creator,
+        mint_to_raise,
+        fundraiser_account,
+        vault,
+        system_program,
+        token_program,
+        _associated_token_program,
+        _rent_sysvar @ ..
+    ] = accounts else {
         return Err(pinocchio::program_error::ProgramError::NotEnoughAccountKeys);
     };
 
@@ -49,28 +56,26 @@ pub fn process_create(accounts: &[AccountInfo], data: &[u8]) -> ProgramResult {
         .map_err(|_| pinocchio::program_error::ProgramError::InvalidInstructionData)?;
 
     if ix_data.amount_to_raise > Fundraiser::MIN_AMOUNT_TO_RAISE.pow(ix_data.duration as u32) {
-        return Err(pinocchio::program_error::ProgramError::InvalidInstructionData)?;
+        return Err(pinocchio::program_error::ProgramError::InvalidInstructionData);
     }
 
-    let seed = [Fundraiser::SEED.as_ref(), creator.key().as_ref()];
-    let (fundraiser_account_pda, bump) = pubkey::find_program_address(&seed, &crate::ID);
+    let fundraiser_seed = [Fundraiser::SEED.as_ref(), creator.key().as_ref()];
+    let (fundraiser_pda, bump) = pubkey::find_program_address(&fundraiser_seed, &crate::ID);
 
-    log(&fundraiser_account_pda);
-    log(&fundraiser_account.key());
-    assert_eq!(fundraiser_account_pda, *fundraiser_account.key());
+    if fundraiser_pda != *fundraiser_account.key() {
+        return Err(pinocchio::program_error::ProgramError::InvalidAccountData);
+    }
 
-    let amount_to_raise = ix_data.amount_to_raise;
-    let duration = ix_data.duration;
+    let bump_bytes = [bump];
 
-    let initial_bump = [bump.to_le()];
     let seed = [
         Seed::from(Fundraiser::SEED.as_bytes()),
         Seed::from(creator.key()),
-        Seed::from(&initial_bump),
+        Seed::from(&bump_bytes),
     ];
     let seeds = Signer::from(&seed);
 
-    if unsafe { fundraiser_account.owner() } != &crate::ID {
+    if fundraiser_account.owner() != &crate::ID {
         CreateAccount {
             from: creator,
             to: fundraiser_account,
@@ -81,18 +86,19 @@ pub fn process_create(accounts: &[AccountInfo], data: &[u8]) -> ProgramResult {
         .invoke_signed(&[seeds.clone()])?;
 
         let fundraiser_state = Fundraiser::from_account_info(&fundraiser_account)?;
-        let now = Clock::get();
+        let now = Clock::get().unwrap();
 
         fundraiser_state.set_creator(*creator.key());
         fundraiser_state.set_mint_to_raise(*mint_to_raise.key());
-        fundraiser_state.set_amount_to_raise(amount_to_raise);
+        fundraiser_state.set_amount_to_raise(ix_data.amount_to_raise);
         fundraiser_state.set_current_amount_raised(0);
-        fundraiser_state.set_time_started(now.unwrap().unix_timestamp);
-        fundraiser_state.set_duration(duration);
-        fundraiser_state.set_bump(initial_bump);
+        fundraiser_state.set_time_started(now.unix_timestamp);
+        fundraiser_state.set_duration(ix_data.duration);
+        fundraiser_state.set_bump(bump_bytes);
     } else {
         return Err(pinocchio::program_error::ProgramError::IllegalOwner);
     }
+
 
     pinocchio_associated_token_account::instructions::Create {
         funding_account: creator,
@@ -102,6 +108,7 @@ pub fn process_create(accounts: &[AccountInfo], data: &[u8]) -> ProgramResult {
         token_program,
         system_program,
     }
-    .invoke()?;
+    .invoke_signed(&[seeds])?;
+
     Ok(())
 }
