@@ -40,10 +40,11 @@ pub fn process_refund(accounts: &[AccountInfo]) -> ProgramResult {
 
     let current_time = Clock::get().unwrap().unix_timestamp;
  
-    assert!(fundraiser_state.duration() >= ((current_time - fundraiser_state.time_started()) / Fundraiser::SECONDS_TO_DAYS) as u8);
+    let days_passed = ((current_time - fundraiser_state.time_started()) / Fundraiser::SECONDS_TO_DAYS) as u8;
+    assert!(fundraiser_state.duration() >= days_passed);
     assert!(vault_state.amount() < fundraiser_state.amount_to_raise());
 
-    let initial_bump = bump_contribute.to_le();
+    let initial_bump = bump.to_le();
     let bump: [u8; 1] = [initial_bump];
     let seed = [
         Seed::from(Fundraiser::SEED.as_bytes()),
@@ -60,7 +61,8 @@ pub fn process_refund(accounts: &[AccountInfo]) -> ProgramResult {
     }
     .invoke_signed(&[seeds])?;
 
-    fundraiser_state.set_amount_to_raise(fundraiser_state.amount_to_raise() - contribute_state.amount());
+    let current_raised = fundraiser_state.current_amount_raised().checked_sub(contribute_state.amount()).unwrap();
+    fundraiser_state.set_current_amount_raised(current_raised);
 
     let lamports_at_contribute_account = contribute_account.lamports();
 
@@ -72,7 +74,6 @@ pub fn process_refund(accounts: &[AccountInfo]) -> ProgramResult {
         *contribute_acc_lamports -= lamports_at_contribute_account;
     }
 
-    fundraiser_account.close()?;
+    contribute_account.close()?;
     Ok(())
 }
-

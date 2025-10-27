@@ -26,7 +26,7 @@ pub fn process_checker(accounts: &[AccountInfo]) -> ProgramResult {
 
     let fundraiser_state = Fundraiser::from_account_info(&fundraiser_account)?;
 
-    if vault_state.amount() >= fundraiser_state.amount_to_raise() {
+    if vault_state.amount() < fundraiser_state.amount_to_raise() {
         return Err(pinocchio::program_error::ProgramError::InsufficientFunds);
     }
 
@@ -69,4 +69,3 @@ pub fn process_checker(accounts: &[AccountInfo]) -> ProgramResult {
     fundraiser_account.close()?;
     Ok(())
 }
-

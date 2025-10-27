@@ -1,7 +1,6 @@
-#[cfg(test)]
-mod tests {
+#[cfg(test)]mod tests {
 
-    use std::{io::Error, path::PathBuf};
+    use std::io::Error;
 
     use litesvm::LiteSVM;
     use litesvm_token::{
@@ -23,6 +22,7 @@ mod tests {
     use solana_transaction::Transaction;
     use spl_associated_token_account::{get_associated_token_address, instruction::create_associated_token_account, solana_program::program_pack::Pack};
     use spl_token::state::Account as TokenAccount;
+    use solana_program::{clock::Clock as SolClock, sysvar::Sysvar};
 
     use crate::{instructions::{ContributeData, CreateData, ProgramInstruction}, states::{Fundraiser, Contribute}};
 
@@ -32,6 +32,8 @@ mod tests {
     const SYSTEM_PROGRAM_ID: Pubkey = system_program::ID;
     const DAYS_IN_SECONDS: i64 = 86400;
     const SLOTS_PER_DAY: u64 = (DAYS_IN_SECONDS as f64 / 0.4) as u64;
+    const DECIMALS: u8 = 6;
+    const TOKENS_TO_MINT: u64 = 1_000_000u64;  // 1M UI tokens per user (raw: * 10^6)
 
     pub struct ReusableState {
         pub creator: Keypair,
@@ -84,30 +86,16 @@ mod tests {
         svm.add_program(program_id(), &so_bytes.to_vec());
 
         let mint_to_raise = CreateMint::new(&mut svm, &mint_authority)
-            .decimals(6)
+            .decimals(DECIMALS)
             .authority(&mint_authority.pubkey())
             .send()
             .unwrap();
 
+        // Creator ATA + mint
         let creator_ata = get_associated_token_address(&creator.pubkey(), &mint_to_raise);
         let ix = create_associated_token_account(
-            &creator.pubkey(),   
-            &creator.pubkey(),   
-            &mint_to_raise,
-            &token_program,
-        );
-        let tx = Transaction::new_signed_with_payer(
-        &[ix],
-        Some(&creator.pubkey()),
-        &[&creator],
-        svm.latest_blockhash(),
-        );
-        svm.send_transaction(tx).unwrap();
-
-        let dave_ata = get_associated_token_address(&creator.pubkey(), &mint_to_raise);
-        let ix = create_associated_token_account(
-            &dave.pubkey(),   
-            &dave.pubkey(),   
+            &creator.pubkey(),
+            &creator.pubkey(),
             &mint_to_raise,
             &token_program,
         );
@@ -118,52 +106,105 @@ mod tests {
             svm.latest_blockhash(),
         );
         svm.send_transaction(tx).unwrap();
+        MintTo::new(
+            &mut svm,
+            &mint_authority,
+            &mint_to_raise,
+            &creator_ata,
+            TOKENS_TO_MINT * 10u64.pow(DECIMALS as u32),
+        ).send().unwrap();
 
-        let carol_ata = get_associated_token_address(&creator.pubkey(), &mint_to_raise);
+        // Alice ATA + mint
+        let alice_ata = get_associated_token_address(&alice.pubkey(), &mint_to_raise);
         let ix = create_associated_token_account(
-            &carol.pubkey(),   
-            &carol.pubkey(),   
+            &alice.pubkey(),
+            &alice.pubkey(),
             &mint_to_raise,
             &token_program,
         );
         let tx = Transaction::new_signed_with_payer(
             &[ix],
-            Some(&creator.pubkey()),
-            &[&creator],
+            Some(&alice.pubkey()),
+            &[&alice],
             svm.latest_blockhash(),
         );
         svm.send_transaction(tx).unwrap();
+        MintTo::new(
+            &mut svm,
+            &mint_authority,
+            &mint_to_raise,
+            &alice_ata,
+            TOKENS_TO_MINT * 10u64.pow(DECIMALS as u32),
+        ).send().unwrap();
 
-        let alice_ata = get_associated_token_address(&creator.pubkey(), &mint_to_raise);
+        // Bob ATA + mint
+        let bob_ata = get_associated_token_address(&bob.pubkey(), &mint_to_raise);
         let ix = create_associated_token_account(
-            &alice.pubkey(),   
-            &alice.pubkey(),   
+            &bob.pubkey(),
+            &bob.pubkey(),
             &mint_to_raise,
             &token_program,
         );
         let tx = Transaction::new_signed_with_payer(
             &[ix],
-            Some(&creator.pubkey()),
-            &[&creator],
+            Some(&bob.pubkey()),
+            &[&bob],
             svm.latest_blockhash(),
         );
         svm.send_transaction(tx).unwrap();
+        MintTo::new(
+            &mut svm,
+            &mint_authority,
+            &mint_to_raise,
+            &bob_ata,
+            TOKENS_TO_MINT * 10u64.pow(DECIMALS as u32),
+        ).send().unwrap();
 
-        let bob_ata = get_associated_token_address(&creator.pubkey(), &mint_to_raise);
+        // Carol ATA + mint (for completeness)
+        let carol_ata = get_associated_token_address(&carol.pubkey(), &mint_to_raise);
         let ix = create_associated_token_account(
-            &bob.pubkey(),   
-            &bob.pubkey(),   
+            &carol.pubkey(),
+            &carol.pubkey(),
             &mint_to_raise,
             &token_program,
-
         );
         let tx = Transaction::new_signed_with_payer(
             &[ix],
-            Some(&creator.pubkey()),
-            &[&creator],
+            Some(&carol.pubkey()),
+            &[&carol],
             svm.latest_blockhash(),
         );
         svm.send_transaction(tx).unwrap();
+        MintTo::new(
+            &mut svm,
+            &mint_authority,
+            &mint_to_raise,
+            &carol_ata,
+            TOKENS_TO_MINT * 10u64.pow(DECIMALS as u32),
+        ).send().unwrap();
+
+        // Dave ATA + mint (for completeness)
+        let dave_ata = get_associated_token_address(&dave.pubkey(), &mint_to_raise);
+        let ix = create_associated_token_account(
+            &dave.pubkey(),
+            &dave.pubkey(),
+            &mint_to_raise,
+            &token_program,
+        );
+        let tx = Transaction::new_signed_with_payer(
+            &[ix],
+            Some(&dave.pubkey()),
+            &[&dave],
+            svm.latest_blockhash(),
+        );
+        svm.send_transaction(tx).unwrap();
+        MintTo::new(
+            &mut svm,
+            &mint_authority,
+            &mint_to_raise,
+            &dave_ata,
+            TOKENS_TO_MINT * 10u64.pow(DECIMALS as u32),
+        ).send().unwrap();
 
         let (fundraiser, fundraiser_bump) = Pubkey::find_program_address(
             &[b"fundraiser", creator.pubkey().as_ref()],
@@ -172,8 +213,8 @@ mod tests {
 
         let vault = get_associated_token_address(&fundraiser, &mint_to_raise);
         let ix = create_associated_token_account(
-            &creator.pubkey(),   
-            &fundraiser,         
+            &creator.pubkey(),
+            &fundraiser,
             &mint_to_raise,
             &token_program,
         );
@@ -185,17 +226,15 @@ mod tests {
         );
         svm.send_transaction(tx).unwrap();
 
-        let (alice_contribute, _) = Pubkey::find_program_address(
+        let alice_contribute = Pubkey::find_program_address(
             &[b"contribute", alice.pubkey().as_ref(), fundraiser.as_ref()],
             &program_id(),
-        );
+        ).0;
 
-        let (bob_contribute, _) = Pubkey::find_program_address(
+        let bob_contribute = Pubkey::find_program_address(
             &[b"contribute", bob.pubkey().as_ref(), fundraiser.as_ref()],
             &program_id(),
-        );
-
-
+        ).0;
 
         let state = ReusableState {
             creator,
@@ -223,106 +262,99 @@ mod tests {
         (svm, state)
     }
 
-    fn warp_time_days(svm: &mut LiteSVM, days: u64) {
-        let clock: Clock = svm.get_sysvar();
-        let target_slot = clock.slot + (days * SLOTS_PER_DAY);
-        svm.warp_to_slot(target_slot);
+    pub fn warp_time_days(svm: &mut LiteSVM, days: u64) {
+        let mut clock = SolClock::get().expect("Failed to get clock");
+        clock.unix_timestamp += (days as i64) * DAYS_IN_SECONDS;
+        svm.set_sysvar(&clock);
     }
 
- pub fn process_create(svm: &mut LiteSVM, state: &ReusableState) -> Result<(), Error> {
-    let creator = &state.creator;
-    let create_data = CreateData {
-        amount_to_raise: 3_000_000u64,
-        duration: 1u8,
-        _padding: [0u8; 7],
-    };
+    pub fn process_create(svm: &mut LiteSVM, state: &ReusableState) {
+        let creator = &state.creator;
+        let create_data = CreateData {
+            amount_to_raise: 3_000 * 10u64.pow(DECIMALS as u32),  // 3k UI target to match small contributes
+            duration: 7,
+            _padding: [0; 7],
+        };
+        let full_data = [ProgramInstruction::Create as u8]
+            .iter()
+            .chain(create_data.to_bytes().iter())
+            .cloned()
+            .collect::<Vec<_>>();
 
-    let data_ix = create_data.to_bytes();
-    let full_data = [
-        vec![crate::instructions::ProgramInstruction::Create as u8],
-        data_ix,
-    ].concat();
+        let ix = Instruction {
+            program_id: program_id(),
+            accounts: vec![
+                AccountMeta::new(creator.pubkey(), true),
+                AccountMeta::new_readonly(state.mint_to_raise, false),
+                AccountMeta::new(state.fundraiser, false),
+                AccountMeta::new(state.vault, false),
+                AccountMeta::new_readonly(state.system_program, false),
+                AccountMeta::new_readonly(state.token_program, false),
+                AccountMeta::new_readonly(state.ata_program, false),
+                AccountMeta::new_readonly(Rent::id(), false),
+            ],
+            data: full_data,
+        };
 
-    let ix = Instruction {
-        program_id: program_id(),
-        accounts: vec![
-            AccountMeta::new(creator.pubkey(), true), // signer
-            AccountMeta::new_readonly(state.mint_to_raise, false),
-            AccountMeta::new(state.fundraiser, false), // PDA, not signer
-            AccountMeta::new(state.vault, false), // PDA, not signer
-            AccountMeta::new_readonly(state.system_program, false),
-            AccountMeta::new_readonly(state.token_program, false),
-            AccountMeta::new_readonly(state.ata_program, false),
-            AccountMeta::new_readonly(Rent::id(), false),
-        ],
-        data: full_data,
-    };
+        let tx = Transaction::new_signed_with_payer(
+            &[ix],
+            Some(&creator.pubkey()),
+            &[creator],
+            svm.latest_blockhash(),
+        );
 
-    let tx = Transaction::new_signed_with_payer(
-        &[ix],
-        Some(&creator.pubkey()),
-        &[&creator],
-        svm.latest_blockhash(),
-    );
+        let result = svm.send_transaction(tx).expect("Create transaction failed");
+        msg!("Create logs: {:?}", result.logs);
+    }
 
-    let result = svm.send_transaction(tx);
-    msg!("Create logs: {:?}", result.as_ref().map(|r| r.logs.clone()).unwrap_or_default());
-    Ok(())
-}
+    pub fn process_contribute(
+        svm: &mut LiteSVM,
+        state: &ReusableState,
+        contributor: &Keypair,
+        contributor_ata: Pubkey,
+        contribute_pda: Pubkey,
+        ui_amount: u64,  // UI tokens
+    ) {
+        let raw_amount = ui_amount * 10u64.pow(DECIMALS as u32);
+        let contribute_data = ContributeData {
+            amount_contributed: raw_amount,
+        };
+        let full_data = [ProgramInstruction::Contribute as u8]
+            .iter()
+            .chain(contribute_data.to_bytes().iter())
+            .cloned()
+            .collect::<Vec<_>>();
 
-pub fn process_contribute(
-    svm: &mut LiteSVM,
-    state: &ReusableState,
-    contributor: &Keypair,
-    contributor_ata: Pubkey,
-    contribute_pda: Pubkey,
-    amount: u64
-) -> Result<(), Error> {
-    let mint_authority = &state.mint_authority;
+        let ix = Instruction {
+            program_id: program_id(),
+            accounts: vec![
+                AccountMeta::new(contributor.pubkey(), true),
+                AccountMeta::new_readonly(state.creator.pubkey(), false),
+                AccountMeta::new(contribute_pda, false),
+                AccountMeta::new(contributor_ata, false),
+                AccountMeta::new_readonly(state.mint_to_raise, false),
+                AccountMeta::new(state.fundraiser, false),
+                AccountMeta::new(state.vault, false),
+                AccountMeta::new_readonly(state.system_program, false),
+                AccountMeta::new_readonly(state.token_program, false),
+                AccountMeta::new_readonly(state.ata_program, false),
+                AccountMeta::new_readonly(Rent::id(), false),
+            ],
+            data: full_data,
+        };
 
-    MintTo::new(svm, mint_authority, &state.mint_to_raise, &contributor_ata, amount * 1_000_000)
-        .send()
-        .unwrap();
+        let tx = Transaction::new_signed_with_payer(
+            &[ix],
+            Some(&contributor.pubkey()),
+            &[contributor],
+            svm.latest_blockhash(),
+        );
 
-    let contribute_data = ContributeData { amount_contributed: amount };
-    let data_ix = contribute_data.to_bytes();
-    let full_data = [
-        vec![crate::instructions::ProgramInstruction::Contribute as u8],
-        data_ix,
-    ].concat();
+        let result = svm.send_transaction(tx).expect("Contribute transaction failed");
+        msg!("Contribute logs: {:?}", result.logs);
+    }
 
-    let ix = Instruction {
-        program_id: program_id(),
-        accounts: vec![
-            AccountMeta::new(contributor.pubkey(), true), // signer
-            AccountMeta::new_readonly(state.creator.pubkey(), false),
-            AccountMeta::new(contribute_pda, false), // PDA
-            AccountMeta::new(contributor_ata, false),
-            AccountMeta::new_readonly(state.mint_to_raise, false),
-            AccountMeta::new(state.fundraiser, false), // PDA
-            AccountMeta::new(state.vault, false), // PDA
-            AccountMeta::new_readonly(state.system_program, false),
-            AccountMeta::new_readonly(state.token_program, false),
-            AccountMeta::new_readonly(state.ata_program, false),
-            AccountMeta::new_readonly(Rent::id(), false),
-        ],
-        data: full_data,
-    };
-
-    let tx = Transaction::new_signed_with_payer(
-        &[ix],
-        Some(&contributor.pubkey()),
-        &[&contributor],
-        svm.latest_blockhash(),
-    );
-
-    let result = svm.send_transaction(tx);
-    msg!("Contribute logs: {:?}", result.as_ref().map(|r| r.logs.clone()).unwrap_or_default());
-    Ok(())
-}
-
-
-    pub fn process_checker(svm: &mut LiteSVM, state: &ReusableState) -> Result<(), Error> {
+    pub fn process_checker(svm: &mut LiteSVM, state: &ReusableState) {
         let creator = &state.creator;
         let full_data = vec![ProgramInstruction::Checker as u8];
 
@@ -341,25 +373,26 @@ pub fn process_contribute(
             data: full_data,
         };
 
-        let recent_blockhash = svm.latest_blockhash();
-
-        let transaction = Transaction::new_signed_with_payer(
+        let tx = Transaction::new_signed_with_payer(
             &[ix],
             Some(&creator.pubkey()),
-            &[&creator],
-            recent_blockhash,
+            &[creator],
+            svm.latest_blockhash(),
         );
 
-        // Send the transaction and capture the result
-        let tx = svm.send_transaction(transaction).unwrap();
-        msg!("Checker logs: {:#?}", tx.logs);
-        msg!("\n\nChecker transaction sucessfull");
-        msg!("CUs Consumed: {}", tx.compute_units_consumed);
-        
-        Ok(())
+        let tx_result = svm.send_transaction(tx).expect("Checker transaction failed");
+        msg!("Checker logs: {:#?}", tx_result.logs);
+        msg!("\n\nChecker transaction successful");
+        msg!("CUs Consumed: {}", tx_result.compute_units_consumed);
     }
 
-    pub fn process_refund(svm: &mut LiteSVM, state: &ReusableState, contributor: &Keypair, contributor_ata: Pubkey, contribute_pda: Pubkey) -> Result<(), Error> {
+    pub fn process_refund(
+        svm: &mut LiteSVM,
+        state: &ReusableState,
+        contributor: &Keypair,
+        contributor_ata: Pubkey,
+        contribute_pda: Pubkey,
+    ) {
         let full_data = vec![ProgramInstruction::Refund as u8];
 
         let ix = Instruction {
@@ -380,28 +413,23 @@ pub fn process_contribute(
             data: full_data,
         };
 
-        let recent_blockhash = svm.latest_blockhash();
-
-        let transaction = Transaction::new_signed_with_payer(
+        let tx = Transaction::new_signed_with_payer(
             &[ix],
             Some(&contributor.pubkey()),
-            &[&contributor],
-            recent_blockhash,
+            &[contributor],
+            svm.latest_blockhash(),
         );
 
-        // Send the transaction and capture the result
-        let tx = svm.send_transaction(transaction).unwrap();
-        msg!("Refund logs: {:#?}", tx.logs);
-        msg!("\n\nRefund transaction sucessfull");
-        msg!("CUs Consumed: {}", tx.compute_units_consumed);
-
-        Ok(())
+        let tx_result = svm.send_transaction(tx).expect("Refund transaction failed");
+        msg!("Refund logs: {:#?}", tx_result.logs);
+        msg!("\n\nRefund transaction successful");
+        msg!("CUs Consumed: {}", tx_result.compute_units_consumed);
     }
 
     #[test]
     fn test_create_instruction() {
         let (mut svm, state) = setup();
-        process_create(&mut svm, &state).unwrap();
+        process_create(&mut svm, &state);
 
         let vault_account = svm.get_account(&state.vault).unwrap();
         let vault_token: TokenAccount = TokenAccount::unpack(&vault_account.data).unwrap();
@@ -411,30 +439,30 @@ pub fn process_contribute(
     #[test]
     fn test_contribute_instruction() {
         let (mut svm, state) = setup();
-        process_create(&mut svm, &state).unwrap();
-        process_contribute(&mut svm, &state, &state.alice, state.alice_ata, state.alice_contribute, 250_000).unwrap();
+        process_create(&mut svm, &state);
+        process_contribute(&mut svm, &state, &state.alice, state.alice_ata, state.alice_contribute, 250).unwrap();  // 250 UI
 
         let vault_account = svm.get_account(&state.vault).unwrap();
         let vault_token: TokenAccount = TokenAccount::unpack(&vault_account.data).unwrap();
-        assert_eq!(vault_token.amount, 250_000_000_000);
+        assert_eq!(vault_token.amount, 250 * 10u64.pow(DECIMALS as u32));
     }
 
     #[test]
     fn test_checker_instruction() {
         let (mut svm, state) = setup();
-        process_create(&mut svm, &state).unwrap();
-        process_contribute(&mut svm, &state, &state.alice, state.alice_ata, state.alice_contribute, 1_000_000).unwrap();
-        process_contribute(&mut svm, &state, &state.bob, state.bob_ata, state.bob_contribute, 2_100_000).unwrap();
+        process_create(&mut svm, &state);
+        process_contribute(&mut svm, &state, &state.alice, state.alice_ata, state.alice_contribute, 1_000).unwrap();  // 1k UI
+        process_contribute(&mut svm, &state, &state.bob, state.bob_ata, state.bob_contribute, 2_000).unwrap();  // 2k UI
 
         let vault_account = svm.get_account(&state.vault).unwrap();
         let vault_token: TokenAccount = TokenAccount::unpack(&vault_account.data).unwrap();
-        assert!(vault_token.amount >= 3_000_000_000);
+        assert!(vault_token.amount >= 3_000 * 10u64.pow(DECIMALS as u32));
 
-        process_checker(&mut svm, &state).unwrap();
+        process_checker(&mut svm, &state);
 
         let creator_ata_account = svm.get_account(&state.creator_ata).unwrap();
         let creator_token: TokenAccount = TokenAccount::unpack(&creator_ata_account.data).unwrap();
-        assert!(creator_token.amount >= 3_000_000_000);
+        assert!(creator_token.amount >= 3_000 * 10u64.pow(DECIMALS as u32) + TOKENS_TO_MINT * 10u64.pow(DECIMALS as u32));  // Original + raised
         assert!(svm.get_account(&state.vault).is_none());
         assert!(svm.get_account(&state.fundraiser).is_none());
     }
@@ -442,16 +470,16 @@ pub fn process_contribute(
     #[test]
     fn test_refund_instruction() {
         let (mut svm, state) = setup();
-        process_create(&mut svm, &state).unwrap();
-        process_contribute(&mut svm, &state, &state.alice, state.alice_ata, state.alice_contribute, 250_000).unwrap();
+        process_create(&mut svm, &state);
+        process_contribute(&mut svm, &state, &state.alice, state.alice_ata, state.alice_contribute, 250).unwrap();
 
         warp_time_days(&mut svm, 2);
 
-        process_refund(&mut svm, &state, &state.alice, state.alice_ata, state.alice_contribute).unwrap();
+        process_refund(&mut svm, &state, &state.alice, state.alice_ata, state.alice_contribute);
 
         let alice_ata_account = svm.get_account(&state.alice_ata).unwrap();
         let alice_token: TokenAccount = TokenAccount::unpack(&alice_ata_account.data).unwrap();
-        assert!(alice_token.amount >= 250_000_000_000);
+        assert_eq!(alice_token.amount, TOKENS_TO_MINT * 10u64.pow(DECIMALS as u32));  // Back to original
         assert!(svm.get_account(&state.alice_contribute).is_none());
     }
 }

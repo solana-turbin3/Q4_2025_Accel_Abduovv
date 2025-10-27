@@ -82,7 +82,8 @@ pub fn process_contribute(accounts: &[AccountInfo], data: &[u8]) -> ProgramResul
     assert!(ix_data.amount_contributed <= (fundraiser_state.amount_to_raise() * Fundraiser::MAX_CONTRIBUTION_PERCENTAGE / Fundraiser::PERCENTAGE_SCALER) as u64);
 
     let current_time = Clock::get().unwrap().unix_timestamp;
-    assert!(current_time <= (((current_time - fundraiser_state.time_started()) / Fundraiser::SECONDS_TO_DAYS) as u8).into());
+    let days_passed = ((current_time - fundraiser_state.time_started()) / Fundraiser::SECONDS_TO_DAYS) as u8;
+    assert!(days_passed <= fundraiser_state.duration());
 
     let bump_bytes = [bump];
     let seed = [
@@ -115,7 +116,8 @@ pub fn process_contribute(accounts: &[AccountInfo], data: &[u8]) -> ProgramResul
     .invoke()?;
 
     let contribute_state = Contribute::from_account_info(&contribute_account)?;
-    fundraiser_state.set_amount_to_raise(fundraiser_state.amount_to_raise().checked_add(ix_data.amount_contributed).unwrap());
+    let current_raised = fundraiser_state.current_amount_raised().checked_add(ix_data.amount_contributed).unwrap();
+    fundraiser_state.set_current_amount_raised(current_raised);
     contribute_state.set_amount(contribute_state.amount().checked_add(ix_data.amount_contributed).unwrap());
 
     Ok(())
